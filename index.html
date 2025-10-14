@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Energy Garden</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            background-color: #0f0f1e;
+            color: #ffffff;
+        }
+        
+        #app {
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+        
+        /* Control Panel */
+        #control-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: rgba(0, 0, 0, 0.85);
+            border: 2px solid #2ecc71;
+            border-radius: 10px;
+            padding: 0;
+            min-width: 320px;
+            max-width: 350px;
+            max-height: 90vh;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(46, 204, 113, 0.3);
+        }
+        
+        #control-panel h2 {
+            color: #2ecc71;
+            margin: 0;
+            padding: 15px 20px;
+            font-size: 20px;
+            border-bottom: 2px solid #2ecc71;
+        }
+        
+        /* Tabs */
+        .tabs {
+            display: flex;
+            background-color: rgba(0, 0, 0, 0.5);
+            border-bottom: 1px solid #34495e;
+        }
+        
+        .tab-button {
+            flex: 1;
+            padding: 12px 10px;
+            background: none;
+            border: none;
+            border-radius: 0;
+            color: #7f8c8d;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 0;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .tab-button:hover {
+            background-color: rgba(46, 204, 113, 0.1);
+            color: #bdc3c7;
+        }
+        
+        .tab-button.active {
+            color: #2ecc71;
+            background-color: rgba(46, 204, 113, 0.15);
+            border-bottom-color: #2ecc71;
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 20px;
+            max-height: calc(90vh - 120px);
+            overflow-y: auto;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .control-section {
+            margin-bottom: 20px;
+        }
+        
+        .control-section h3 {
+            color: #3498db;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        
+        .control-group {
+            margin-bottom: 15px;
+        }
+        
+        .control-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #bdc3c7;
+            font-size: 13px;
+        }
+        
+        .control-group input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #34495e;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        .control-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #2ecc71;
+            cursor: pointer;
+        }
+        
+        .control-group input[type="range"]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #2ecc71;
+            cursor: pointer;
+            border: none;
+        }
+        
+        .control-group input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            background-color: #2c3e50;
+            border: 1px solid #34495e;
+            border-radius: 4px;
+            color: #ffffff;
+            font-size: 14px;
+        }
+        
+        .value-display {
+            display: inline-block;
+            float: right;
+            color: #2ecc71;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            background-color: #2ecc71;
+            border: none;
+            border-radius: 6px;
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #27ae60;
+        }
+        
+        button.secondary {
+            background-color: #3498db;
+        }
+        
+        button.secondary:hover {
+            background-color: #2980b9;
+        }
+        
+        /* Actions Panel Buttons */
+        #actions-panel button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        #btn-restart:hover {
+            background-color: #27ae60 !important;
+        }
+        
+        #btn-reset-config:hover {
+            background-color: #2980b9 !important;
+        }
+        
+        /* Stats Panels */
+        .stats-content {
+            padding: 15px;
+        }
+        
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            padding: 5px 0;
+            border-bottom: 1px solid #34495e;
+        }
+        
+        .stat-label {
+            color: #bdc3c7;
+            font-size: 13px;
+        }
+        
+        .stat-value {
+            color: #2ecc71;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        /* Scrollbar styling */
+        .tab-content::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .tab-content::-webkit-scrollbar-track {
+            background: #1a1a2e;
+            border-radius: 4px;
+        }
+        
+        .tab-content::-webkit-scrollbar-thumb {
+            background: #2ecc71;
+            border-radius: 4px;
+        }
+        
+        .tab-content::-webkit-scrollbar-thumb:hover {
+            background: #27ae60;
+        }
+    </style>
+</head>
+<body>
+    <div id="app"></div>
+    
+    <!-- Combined Stats Panel -->
+    <div id="stats-panel" style="position: fixed; top: 20px; left: 20px; background-color: rgba(0, 0, 0, 0.85); border: 2px solid #3498db; border-radius: 10px; padding: 0; min-width: 250px;">
+        <h2 style="color: #3498db; margin: 0; padding: 12px 15px; font-size: 18px; border-bottom: 2px solid #3498db;">📊 Statistics</h2>
+        
+        <!-- Fungi Stats Section -->
+        <div class="stats-content" style="border-bottom: 2px solid #34495e;">
+            <h3 style="color: #9b59b6; font-size: 14px; margin: 0 0 10px 0; padding-bottom: 5px; border-bottom: 1px solid #9b59b6;">🍄 Fungi Stats</h3>
+            <div class="stat-row">
+                <span class="stat-label">Total Fungi:</span>
+                <span class="stat-value" id="fungi-count" style="color: #9b59b6;">0</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Total Cells:</span>
+                <span class="stat-value" id="cell-count">0</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Active Mushrooms:</span>
+                <span class="stat-value" id="mushroom-count" style="color: #e74c3c;">0</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Floating Spores:</span>
+                <span class="stat-value" id="spore-count" style="color: #f39c12;">0</span>
+            </div>
+        </div>
+        
+        <!-- Garden Stats Section -->
+        <div class="stats-content">
+            <h3 style="color: #2ecc71; font-size: 14px; margin: 0 0 10px 0; padding-bottom: 5px; border-bottom: 1px solid #2ecc71;">🌱 Garden Stats</h3>
+            <div class="stat-row">
+                <span class="stat-label">Time of Day:</span>
+                <span class="stat-value" id="stat-time-of-day">🌅 Dawn</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Sun Energy:</span>
+                <span class="stat-value" id="stat-sun-energy">0.0</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Total Energy:</span>
+                <span class="stat-value" id="stat-total-energy">0</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Empty Tiles:</span>
+                <span class="stat-value" id="stat-empty-tiles">0</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Occupied Tiles:</span>
+                <span class="stat-value" id="stat-occupied-tiles">0</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Avg Energy/Tile:</span>
+                <span class="stat-value" id="stat-avg-energy">0</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Actions Panel -->
+    <div id="actions-panel" style="position: fixed; bottom: 20px; left: 20px; background-color: rgba(0, 0, 0, 0.85); border: 2px solid #e74c3c; border-radius: 10px; padding: 15px; min-width: 250px;">
+        <button id="btn-restart" style="width: 100%; padding: 12px; margin-bottom: 10px; background-color: #2ecc71; border: none; border-radius: 6px; color: #ffffff; font-size: 15px; font-weight: bold; cursor: pointer; transition: background-color 0.3s;">🔄 Restart Garden</button>
+        <button id="btn-reset-config" style="width: 100%; padding: 12px; background-color: #3498db; border: none; border-radius: 6px; color: #ffffff; font-size: 15px; font-weight: bold; cursor: pointer; transition: background-color 0.3s;">↺ Reset to Defaults</button>
+    </div>
+    
+    <!-- Control Panel -->
+    <div id="control-panel">
+        <h2>⚙️ Garden Controls</h2>
+        
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab-button active" data-tab="tab-grid">Grid & Energy</button>
+            <button class="tab-button" data-tab="tab-daynight">Day-Night Cycle</button>
+            <button class="tab-button" data-tab="tab-simulation">🧬 Simulation</button>
+            <button class="tab-button" data-tab="tab-fungi">🍄 New Fungi</button>
+        </div>
+        
+        <!-- Tab: Grid & Energy Settings -->
+        <div class="tab-content active" id="tab-grid">
+            <!-- Grid Settings -->
+            <div class="control-section">
+                <h3>Grid Settings</h3>
+                <div class="control-group">
+                    <label>
+                        Grid Size: <span class="value-display" id="val-grid-size">20</span>
+                    </label>
+                    <input type="range" id="ctrl-grid-size" min="5" max="50" value="20" step="1">
+                </div>
+            </div>
+            
+            <!-- Energy Settings -->
+            <div class="control-section">
+                <h3>Energy Settings</h3>
+                <div class="control-group">
+                    <label>
+                        Max Tile Energy: <span class="value-display" id="val-max-energy">1000</span>
+                    </label>
+                    <input type="range" id="ctrl-max-energy" min="100" max="5000" value="1000" step="100">
+                </div>
+            </div>
+            
+            <!-- Generation Rates -->
+            <div class="control-section">
+                <h3>Generation Rates</h3>
+                <div class="control-group">
+                    <label>
+                        Empty Tile Rate: <span class="value-display" id="val-empty-rate">10</span>
+                    </label>
+                    <input type="range" id="ctrl-empty-rate" min="1" max="100" value="10" step="1">
+                </div>
+                <div class="control-group">
+                    <label>
+                        Occupied Tile Rate: <span class="value-display" id="val-occupied-rate">5</span>
+                    </label>
+                    <input type="range" id="ctrl-occupied-rate" min="0" max="50" value="5" step="1">
+                </div>
+            </div>
+            
+            <!-- Generation Curve -->
+            <div class="control-section">
+                <h3>Generation Curve</h3>
+                <div class="control-group">
+                    <label>
+                        Slowdown Power: <span class="value-display" id="val-slowdown">2.0</span>
+                    </label>
+                    <input type="range" id="ctrl-slowdown" min="0.5" max="5" value="2.0" step="0.1">
+                    <small style="color: #7f8c8d; font-size: 11px; display: block; margin-top: 5px;">
+                        Higher = tiles resist slowdown longer
+                    </small>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tab: Day-Night Cycle -->
+        <div class="tab-content" id="tab-daynight">
+            <!-- Day Duration -->
+            <div class="control-section">
+                <h3>Cycle Duration</h3>
+                <div class="control-group">
+                    <label>
+                        Full Day Duration: <span class="value-display" id="val-day-duration">30</span>s
+                    </label>
+                    <input type="range" id="ctrl-day-duration" min="10" max="120" value="30" step="5">
+                    <small style="color: #7f8c8d; font-size: 11px; display: block; margin-top: 5px;">
+                        Time for complete day/night cycle
+                    </small>
+                </div>
+            </div>
+            
+            <!-- Day/Night Ratio -->
+            <div class="control-section">
+                <h3>Day/Night Balance</h3>
+                <div class="control-group">
+                    <label>
+                        Day/Night Ratio: <span class="value-display" id="val-day-ratio">60%</span> day
+                    </label>
+                    <input type="range" id="ctrl-day-ratio" min="0.2" max="0.8" value="0.6" step="0.05">
+                    <small style="color: #7f8c8d; font-size: 11px; display: block; margin-top: 5px;">
+                        Percentage of cycle that is daytime
+                    </small>
+                </div>
+            </div>
+            
+            <!-- Sun Energy -->
+            <div class="control-section">
+                <h3>Sun Energy (Photosynthesis)</h3>
+                <div class="control-group">
+                    <label>
+                        Max Sun Emission: <span class="value-display" id="val-sun-emission">20</span>
+                    </label>
+                    <input type="range" id="ctrl-sun-emission" min="0" max="100" value="20" step="5">
+                    <small style="color: #7f8c8d; font-size: 11px; display: block; margin-top: 5px;">
+                        Peak energy emission at noon (for plants)
+                    </small>
+                </div>
+            </div>
+            
+            <!-- Cycle Info -->
+            <div class="control-section">
+                <div style="background-color: rgba(52, 152, 219, 0.2); padding: 12px; border-radius: 6px; border-left: 3px solid #3498db;">
+                    <div style="font-size: 12px; color: #bdc3c7; margin-bottom: 8px;">
+                        ☀️ Day: <span id="info-day-duration" style="color: #2ecc71; font-weight: bold;">18s</span>
+                    </div>
+                    <div style="font-size: 12px; color: #bdc3c7;">
+                        🌙 Night: <span id="info-night-duration" style="color: #9b59b6; font-weight: bold;">12s</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tab: Simulation Parameters -->
+        <div class="tab-content" id="tab-simulation">
+            <!-- Energy Consumption -->
+            <div class="control-section">
+                <h3>⚡ Energy Consumption</h3>
+                <div class="control-group">
+                    <label>
+                        Base Metabolism Drain: <span class="value-display" id="val-metabolism-drain">0.5</span>/s
+                    </label>
+                    <input type="range" id="ctrl-metabolism-drain" min="0.1" max="2.0" value="0.5" step="0.1">
+                    <small style="color: #7f8c8d; font-size: 11px; display: block; margin-top: 5px;">
+                        Base energy drain per second (modified by Yellow DNA)
+                    </small>
+                </div>
+                <div class="control-group">
+                    <label>
+                        Energy Sharing Rate: <span class="value-display" id="val-sharing-rate">10</span>/s
+                    </label>
+                    <input type="range" id="ctrl-sharing-rate" min="0" max="50" value="10" step="5">
+                    <small style="color: #7f8c8d; font-size: 11px; display: block; margin-top: 5px;">
+                        Energy transfer between connected cells per second
+                    </small>
+                </div>
+            </div>
+            
+            <!-- Energy Acquisition -->
+            <div class="control-section">
+                <h3>🌟 Energy Acquisition</h3>
+                <div class="control-group">
+                    <label>
+                        Max Photosynthesis Rate: <span class="value-display" id="val-photosynthesis-rate">2.0</span>/s
+                    </label>
+                    <input type="range" id="ctrl-photosynthesis-rate" min="0.5" max="5.0" value="2.0" step="0.5">
+                    <small style="color: #7f8c8d; font-size: 11px; display: block; margin-top: 5px;">
+                        Max energy gain from sunlight per second (at 100% Green DNA)
+                    </small>
+                </div>
+                <div class="control-group">
+                    <label>
+                        Max Soil Absorption Rate: <span class="value-display" id="val-soil-rate">2.0</span>/s
+                    </label>
+                    <input type="range" id="ctrl-soil-rate" min="0.5" max="5.0" value="2.0" step="0.5">
+                    <small style="color: #7f8c8d; font-size: 11px; display: block; margin-top: 5px;">
+                        Max energy absorption from soil per second (at 100% Brown DNA)
+                    </small>
+                </div>
+                <div class="control-group">
+                    <label>
+                        Max Parasitism Rate: <span class="value-display" id="val-parasitism-rate">1.0</span>/s
+                    </label>
+                    <input type="range" id="ctrl-parasitism-rate" min="0.1" max="3.0" value="1.0" step="0.1">
+                    <small style="color: #7f8c8d; font-size: 11px; display: block; margin-top: 5px;">
+                        Max energy drained from enemies per second (at 100% Red DNA)
+                    </small>
+                </div>
+            </div>
+            
+            <!-- Expansion Costs -->
+            <div class="control-section">
+                <h3>🔵 Expansion (Growth)</h3>
+                <div class="control-group">
+                    <label>
+                        Base Expansion Cost: <span class="value-display" id="val-expansion-cost">30</span> energy
+                    </label>
+                    <input type="range" id="ctrl-expansion-cost" min="10" max="200" value="30" step="10">
+                    <small style="color: #7f8c8d; font-size: 11px; display: block; margin-top: 5px;">
+                        Base energy cost to create new cell (modified by Blue DNA)
+                    </small>
+                </div>
+            </div>
+            
+            <!-- Reproduction Costs -->
+            <div class="control-section">
+                <h3>🍄 Reproduction (Mushrooms & Spores)</h3>
+                <div class="control-group">
+                    <label>
+                        Base Mushroom Cost: <span class="value-display" id="val-mushroom-cost">40</span> energy
+                    </label>
+                    <input type="range" id="ctrl-mushroom-cost" min="5" max="100" value="40" step="5">
+                    <small style="color: #7f8c8d; font-size: 11px; display: block; margin-top: 5px;">
+                        Base energy cost to grow mushroom (modified by Purple DNA)
+                    </small>
+                </div>
+                <div class="control-group">
+                    <label>
+                        Mushroom Growth Rate: <span class="value-display" id="val-mushroom-growth">0.2</span>/s
+                    </label>
+                    <input type="range" id="ctrl-mushroom-growth" min="0.05" max="1.0" value="0.2" step="0.05">
+                    <small style="color: #7f8c8d; font-size: 11px; display: block; margin-top: 5px;">
+                        How fast mushrooms grow (1.0 = instant, 0.2 = 5 seconds)
+                    </small>
+                </div>
+                <div class="control-group">
+                    <label>
+                        Spores Per Mushroom: <span class="value-display" id="val-spore-count">5</span>
+                    </label>
+                    <input type="range" id="ctrl-spore-count" min="1" max="20" value="5" step="1">
+                    <small style="color: #7f8c8d; font-size: 11px; display: block; margin-top: 5px;">
+                        Number of spores released when mushroom matures
+                    </small>
+                </div>
+                <div class="control-group">
+                    <label>
+                        Spore Scatter Radius: <span class="value-display" id="val-spore-radius">3</span> tiles
+                    </label>
+                    <input type="range" id="ctrl-spore-radius" min="1" max="10" value="3" step="1">
+                    <small style="color: #7f8c8d; font-size: 11px; display: block; margin-top: 5px;">
+                        Maximum distance spores can scatter from mushroom
+                    </small>
+                </div>
+                <div class="control-group">
+                    <label>
+                        Spore Lifetime: <span class="value-display" id="val-spore-lifetime">10</span>s
+                    </label>
+                    <input type="range" id="ctrl-spore-lifetime" min="5" max="60" value="10" step="5">
+                    <small style="color: #7f8c8d; font-size: 11px; display: block; margin-top: 5px;">
+                        Seconds before spore dies if not germinated
+                    </small>
+                </div>
+            </div>
+            
+            <!-- Mutation -->
+            <div class="control-section">
+                <h3>🧬 Evolution & Mutation</h3>
+                <div class="control-group">
+                    <label>
+                        Total DNA Points: <span class="value-display" id="val-total-dna-points">100</span>
+                    </label>
+                    <input type="range" id="ctrl-total-dna-points" min="50" max="500" value="100" step="10">
+                    <small style="color: #7f8c8d; font-size: 11px; display: block; margin-top: 5px;">
+                        Total points available for DNA trait distribution (affects all fungi)
+                    </small>
+                </div>
+                <div class="control-group">
+                    <label>
+                        Mutation Strength: <span class="value-display" id="val-mutation-strength">15%</span>
+                    </label>
+                    <input type="range" id="ctrl-mutation-strength" min="0" max="0.5" value="0.15" step="0.05">
+                    <small style="color: #7f8c8d; font-size: 11px; display: block; margin-top: 5px;">
+                        How much DNA can change during reproduction (0% = clones, 50% = chaos)
+                    </small>
+                </div>
+            </div>
+            
+            <!-- Reset to Defaults -->
+            <div class="control-section">
+                <button id="btn-reset-simulation" class="action-button" style="background-color: #e67e22; width: 100%;">
+                    🔄 Reset to Defaults
+                </button>
+            </div>
+        </div>
+        
+        <!-- Tab: New Fungi -->
+        <div class="tab-content" id="tab-fungi">
+            <!-- Spawn New Fungus -->
+            <div class="control-section">
+                <h3>🧬 Spawn New Fungus</h3>
+                <div class="control-group">
+                    <label style="color: #27ae60;">
+                        💚 Green (Photosynthesis): <span class="value-display" id="val-dna-green">30</span>
+                    </label>
+                    <input type="range" id="ctrl-dna-green" min="0" max="100" value="30" step="5">
+                </div>
+                <div class="control-group">
+                    <label style="color: #e74c3c;">
+                        ❤️ Red (Parasitism): <span class="value-display" id="val-dna-red">10</span>
+                    </label>
+                    <input type="range" id="ctrl-dna-red" min="0" max="100" value="10" step="5">
+                </div>
+                <div class="control-group">
+                    <label style="color: #8b4513;">
+                        🤎 Brown (Soil): <span class="value-display" id="val-dna-brown">20</span>
+                    </label>
+                    <input type="range" id="ctrl-dna-brown" min="0" max="100" value="20" step="5">
+                </div>
+                <div class="control-group">
+                    <label style="color: #f1c40f;">
+                        💛 Yellow (Metabolism): <span class="value-display" id="val-dna-yellow">15</span>
+                    </label>
+                    <input type="range" id="ctrl-dna-yellow" min="0" max="100" value="15" step="5">
+                </div>
+                <div class="control-group">
+                    <label style="color: #ff69b4;">
+                        💗 Pink (Storage): <span class="value-display" id="val-dna-pink">10</span>
+                    </label>
+                    <input type="range" id="ctrl-dna-pink" min="0" max="100" value="10" step="5">
+                </div>
+                <div class="control-group">
+                    <label style="color: #3498db;">
+                        💙 Blue (Expansion): <span class="value-display" id="val-dna-blue">10</span>
+                    </label>
+                    <input type="range" id="ctrl-dna-blue" min="0" max="100" value="10" step="5">
+                </div>
+                <div class="control-group">
+                    <label style="color: #9b59b6;">
+                        💜 Purple (Reproduction): <span class="value-display" id="val-dna-purple">5</span>
+                    </label>
+                    <input type="range" id="ctrl-dna-purple" min="0" max="100" value="5" step="5">
+                </div>
+                
+                <div style="background-color: rgba(52, 152, 219, 0.2); padding: 10px; border-radius: 6px; margin: 10px 0; text-align: center;">
+                    <span style="color: #bdc3c7; font-size: 12px;">Total DNA Points: </span>
+                    <span id="dna-total" style="color: #2ecc71; font-weight: bold; font-size: 14px;">100</span>
+                    <span style="color: #bdc3c7; font-size: 12px;"> / </span>
+                    <span id="dna-total-max" style="color: #3498db; font-weight: bold; font-size: 14px;">200</span>
+                </div>
+                <small style="color: #7f8c8d; font-size: 11px; display: block; margin-top: -5px; margin-bottom: 10px; text-align: center;">
+                    Configure total points in <strong>Evolution</strong> tab
+                </small>
+                
+                <button id="btn-spawn-fungus" style="background-color: #9b59b6;">🍄 Spawn Fungus (Click Tile)</button>
+                <small style="color: #7f8c8d; font-size: 11px; display: block; margin-top: 5px; text-align: center;">
+                    Click on an empty tile after pressing button
+                </small>
+            </div>
+            
+            <!-- Quick Presets -->
+            <div class="control-section">
+                <h3>⚡ Quick Presets</h3>
+                <button id="btn-preset-photosynthesis" class="secondary" style="background-color: #27ae60;">🌱 Photosynthesis Build</button>
+                <button id="btn-preset-parasite" class="secondary" style="background-color: #e74c3c;">🧛 Parasite Build</button>
+                <button id="btn-preset-soil" class="secondary" style="background-color: #8b4513;">🌍 Soil Build</button>
+                <button id="btn-preset-balanced" class="secondary" style="background-color: #3498db;">⚖️ Balanced Build</button>
+            </div>
+            
+            <!-- Management -->
+            <div class="control-section">
+                <h3>🧹 Management</h3>
+                <button id="btn-clear-fungi" style="background-color: #e67e22;">Clear All Fungi</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Time Speed Controls -->
+    <div id="time-controls" style="
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(44, 62, 80, 0.95);
+        padding: 12px 20px;
+        border-radius: 30px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        z-index: 900;
+        border: 2px solid #34495e;
+    ">
+        <span style="color: #ecf0f1; font-weight: 600; font-size: 13px; margin-right: 5px;">Time Speed:</span>
+        <button id="btn-speed-pause" class="speed-btn" data-speed="0" title="Pause">⏸</button>
+        <button id="btn-speed-slow" class="speed-btn" data-speed="0.5" title="0.5x Speed">◀</button>
+        <button id="btn-speed-normal" class="speed-btn active" data-speed="1" title="Normal Speed">▶</button>
+        <button id="btn-speed-fast" class="speed-btn" data-speed="10" title="10x Speed">▶▶</button>
+        <button id="btn-speed-vfast" class="speed-btn" data-speed="100" title="100x Speed">▶▶▶</button>
+        <span id="speed-display" style="
+            color: #3498db;
+            font-weight: 700;
+            font-size: 14px;
+            min-width: 45px;
+            text-align: center;
+            margin-left: 5px;
+        ">1.0x</span>
+    </div>
+    
+    <style>
+        .speed-btn {
+            background: rgba(52, 152, 219, 0.3);
+            color: #ecf0f1;
+            border: 2px solid #34495e;
+            border-radius: 8px;
+            padding: 8px 14px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.2s ease;
+            font-weight: bold;
+            min-width: 45px;
+        }
+        
+        .speed-btn:hover {
+            background: rgba(52, 152, 219, 0.5);
+            border-color: #3498db;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(52, 152, 219, 0.4);
+        }
+        
+        .speed-btn.active {
+            background: #3498db;
+            border-color: #2980b9;
+            color: white;
+        }
+        
+        .speed-btn:active {
+            transform: translateY(0);
+        }
+    </style>
+    
+    <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
