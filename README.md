@@ -1,6 +1,8 @@
 # � Mushroom Garden
 
-A beautiful miniature toy-world diorama featuring a tile-based fungus simul### 📊 Game Information Display
+A beautiful miniature toy-world diorama featuring a tile-based fungus simul
+
+### 📊 Game Information Display
 At the top of the screen:
 - **🍄 Days Passed**: Total number of complete day/night cycles
 - **☀️/🌙 Time of Day**: Current phase (Morning/Noon/Evening/Night/etc.)
